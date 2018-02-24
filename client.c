@@ -25,6 +25,7 @@ int main(int argc, char *argv[]){
 
     char recvbuffer[BUFFLEN];
     char sendbuffer[BUFFLEN];
+    char messagebuffer[BUFFLEN];
 
     int i;
 
@@ -71,8 +72,10 @@ int main(int argc, char *argv[]){
         fprintf(stderr,"ERROR #4: error in connect().\n");
         exit(1);
     }
+
     memset(&sendbuffer,0,BUFFLEN);
-    fcntl(0,F_SETFL,fcntl(0,F_GETFL,0)|O_NONBLOCK);
+
+    fcntl(0,F_SETFL,fcntl(0,F_GETFL,0)|O_NONBLOCK); //Some magic that includes getting flags and then setting them
     while (1){
         FD_ZERO(&read_set);
         FD_SET(s_socket,&read_set);
