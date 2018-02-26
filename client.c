@@ -80,16 +80,18 @@ int main(int argc, char *argv[]){
             memset(&recvbuffer,0,BUFFLEN);
             i = read(s_socket, &recvbuffer, BUFFLEN);
 
-            if (i<0){
+            if (i<=0){ //If got empty message from server
                 fprintf(stderr,"ERROR #5: Lost connection to server. Terminating.\n");
                 close(s_socket);
                 exit(1);
             }
             
-            printf("Response from server: %s\n",recvbuffer);
+            printf("Response from server: %s",recvbuffer);
         }
         else if (FD_ISSET(0,&read_set)) {   //else std_in ops
             i = read(0,&sendbuffer, BUFFLEN);
+            if (i<=0)
+                printf("Empty messages are not allowed to be sent\n");
             write(s_socket, sendbuffer,i);
         }
     }

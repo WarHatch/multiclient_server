@@ -115,15 +115,23 @@ int main(int argc, char *argv[]){
 
                     memset(&clientaddr, 0, clientaddrlen);
                     getpeername(c_sockets[i], (struct sockaddr*)&clientaddr, &clientaddrlen);
-                    printf("Received. %s : %s\n", inet_ntoa(clientaddr.sin_addr), buffer);
+                    printf("Received. %s : %s", inet_ntoa(clientaddr.sin_addr), buffer);
 
-                    int j;
-                    for (j = 0; j < MAXCLIENTS; j++){
-                        if (c_sockets[j] != -1){
-                            int w_len = send(c_sockets[j], buffer, r_len,0);
-                            if (w_len <= 0){ //Somebody disconnected
-                                close(c_sockets[j]);
-                                c_sockets[j] = -1;
+                    if (r_len <= 0){ //Sender disconnected
+                        printf("Assuming the client has disconnected.");
+                        close(c_sockets[i]);
+                        c_sockets[i] = -1;
+                    }
+                    else {
+                        int j;
+                        for (j = 0; j < MAXCLIENTS; j++){
+                            if (c_sockets[j] != -1){
+                                int w_len = send(c_sockets[j], buffer, r_len,0);
+                                if (w_len <= 0){ //Receiver is disconnected
+                                    printf("Assuming the client has disconnected.");
+                                    close(c_sockets[j]);
+                                    c_sockets[j] = -1;
+                                }
                             }
                         }
                     }
