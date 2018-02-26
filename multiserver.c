@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #define BUFFLEN 1024
-#define MAXCLIENTS 10
+#define MAXCLIENTS 2
 
 int findemptyuser(int c_sockets[]){
     int i;
@@ -65,6 +65,13 @@ int main(int argc, char *argv[]){
         fprintf(stderr,"ERROR #4: error in listen().\n");
         return -1;
     }
+    int opt = 1; //TRUE
+    if( setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 )  
+    {  
+        fprintf(stderr,"ERROR #5: error setting socket options.\n");
+        return -1;  
+    }  
+
     printf("The server is listening...\n");                         
 
     for (i = 0; i < MAXCLIENTS; i++){
@@ -114,7 +121,7 @@ int main(int argc, char *argv[]){
                     for (j = 0; j < MAXCLIENTS; j++){
                         if (c_sockets[j] != -1){
                             int w_len = send(c_sockets[j], buffer, r_len,0);
-                            if (w_len <= 0){
+                            if (w_len <= 0){ //Somebody disconnected
                                 close(c_sockets[j]);
                                 c_sockets[j] = -1;
                             }

@@ -1,10 +1,3 @@
-/*
- * Echo klientas
- * 
- * Author: K�stutis Mizara
- * Description: I�siun�ia serveriui prane�im� ir j� gauna
- */
-
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -75,7 +68,7 @@ int main(int argc, char *argv[]){
 
     memset(&sendbuffer,0,BUFFLEN);
 
-    fcntl(0,F_SETFL,fcntl(0,F_GETFL,0)|O_NONBLOCK); //No clue what this does
+    fcntl(0,F_SETFL,fcntl(0,F_GETFL,0)|O_NONBLOCK);
     while (1){
         FD_ZERO(&read_set);
         FD_SET(s_socket,&read_set);
@@ -83,11 +76,16 @@ int main(int argc, char *argv[]){
 
         select(s_socket+1,&read_set,NULL,NULL,NULL);
 
-        //TODO check if server died
-
         if (FD_ISSET(s_socket, &read_set)){ //if got a signal from server
             memset(&recvbuffer,0,BUFFLEN);
             i = read(s_socket, &recvbuffer, BUFFLEN);
+
+            if (i<0){
+                fprintf(stderr,"ERROR #5: Lost connection to server. Terminating.\n");
+                close(s_socket);
+                exit(1);
+            }
+            
             printf("Response from server: %s\n",recvbuffer);
         }
         else if (FD_ISSET(0,&read_set)) {   //else std_in ops
@@ -110,9 +108,7 @@ int main(int argc, char *argv[]){
 //    recv(s_socket,&buffer,BUFFLEN,0);
 //    printf("Server sent: %s\n", buffer);
 
-    /*
-     * Socket'as u�daromas
-     */
+
     close(s_socket);
     return 0;
 }
