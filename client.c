@@ -83,13 +83,15 @@ int main(int argc, char *argv[]){
 
         select(s_socket+1,&read_set,NULL,NULL,NULL);
 
+        //TODO check if server died
+
         if (FD_ISSET(s_socket, &read_set)){ //if got a signal from server
             memset(&recvbuffer,0,BUFFLEN);
             i = read(s_socket, &recvbuffer, BUFFLEN);
             printf("Response from server: %s\n",recvbuffer);
         }
         else if (FD_ISSET(0,&read_set)) {   //else std_in ops
-            i = read(0,&sendbuffer,1);
+            i = read(0,&sendbuffer, BUFFLEN);
             write(s_socket, sendbuffer,i);
         }
     }
