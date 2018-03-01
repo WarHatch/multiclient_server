@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #define BUFFLEN 1024
-#define MAXCLIENTS 2
+#define MAXCLIENTS 3
 
 int findemptyuser(int c_sockets[]){
     int i;
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]){
                     printf("Received. %s : %s", inet_ntoa(clientaddr.sin_addr), buffer);
 
                     if (r_len <= 0){ //Sender disconnected
-                        printf("Assuming the client has disconnected.");
+                        printf("---> Assuming the client has disconnected.\n");
                         close(c_sockets[i]);
                         c_sockets[i] = -1;
                     }
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]){
                             if (c_sockets[j] != -1){
                                 int w_len = send(c_sockets[j], buffer, r_len,0);
                                 if (w_len <= 0){ //Receiver is disconnected
-                                    printf("Assuming the client has disconnected.");
+                                    printf("---> Assuming the client has disconnected.\n");
                                     close(c_sockets[j]);
                                     c_sockets[j] = -1;
                                 }

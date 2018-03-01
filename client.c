@@ -68,7 +68,7 @@ int main(int argc, char *argv[]){
 
     memset(&sendbuffer,0,BUFFLEN);
 
-    fcntl(0,F_SETFL,fcntl(0,F_GETFL,0)|O_NONBLOCK);
+    //fcntl(0,F_SETFL,fcntl(0,F_GETFL,0)|O_NONBLOCK); //TODO comment this out and test
     while (1){
         FD_ZERO(&read_set);
         FD_SET(s_socket,&read_set);
