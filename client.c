@@ -7,8 +7,29 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #define BUFFLEN 1024
+
+char *substring(char *string, int position, int length) 
+{
+    char *pointer = malloc(length+1);
+    if (pointer == NULL)
+    {
+        printf("Unable to allocate memory.\n");
+        exit(1);
+    }
+
+    int c;
+    for (c = 0 ; c < length ; c++)
+    {
+        *(pointer+c) = *(string+position-1);      
+        string++;   
+    }
+    *(pointer+c) = '\0';
+
+    return pointer;
+}
 
 int main(int argc, char *argv[]){
     unsigned int port;
@@ -90,26 +111,41 @@ int main(int argc, char *argv[]){
         }
         else if (FD_ISSET(0,&read_set)) {   //else std_in ops
             i = read(0,&sendbuffer, BUFFLEN);
+
             if (i<=0)
-                printf("Empty messages are not allowed to be sent\n");
-            write(s_socket, sendbuffer,i);
+                printf("Something bad hapenned :(\n");
+            else if (i >= 4) {
+                //Checks if it's ADD or REM or SHOW or EXIT
+                char* first_a;
+                first_a = substring(sendbuffer, 1, 4);
+                //printf("First arg: %s\n", first_a);
+                write(s_socket, sendbuffer,i); // <-------- TODO: move this
+
+                if (strcmp(first_a,"ADD ") == 0){
+                    if (*(sendbuffer+4) == '\n' || *(sendbuffer+4) == '+')
+                    goto help;
+                }
+                else if (strcmp(first_a,"REM ") == 0){
+                    printf("***REM OPERATION NOT IMPLEMENTED***\n");
+                }
+                else if (strcmp(first_a,"SHOW") == 0){
+                    printf("***SHOW OPERATION NOT IMPLEMENTED***\n");
+                }
+                else if (strcmp(first_a,"EXIT") == 0){
+                    close(s_socket);
+                    return 0;
+                }
+                else goto help;
+            }
+            else {
+                help:
+                printf("To add a reminder: ADD <Name of reminder> +<YY/MM/DD HH/MM> [+][Details]\n");
+                //printf("To remove a reminder: REM <Name of reminder>\n");
+                //printf("To show reminders: SHOW [Name of reminder]\n");
+                //printf("To exit: EXIT");
+            }
         }
     }
-
-//    printf("Enter the message: ");
-//    fgets(buffer, BUFFLEN, stdin);
-    /*
-     * Issiunciamas pranesimas serveriui
-     */
-//    send(s_socket,buffer,strlen(buffer),0);
-
-//    memset(&buffer,0,BUFFLEN);
-    /*
-     * Pranesimas gaunamas is serverio
-     */
-//    recv(s_socket,&buffer,BUFFLEN,0);
-//    printf("Server sent: %s\n", buffer);
-
 
     close(s_socket);
     return 0;

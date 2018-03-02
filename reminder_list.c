@@ -8,7 +8,7 @@
 typedef struct node {
     char name[50];
     time_t time;
-    char* details; //Shouldn't be longer than 1000 chars
+    char* details; //Shouldn't be longer than 800 chars
 
     struct node * next;
 } reminder_t;
