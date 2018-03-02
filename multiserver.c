@@ -7,6 +7,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "rem_ops.c"
+#include "input_ops.c"
+
 #define BUFFLEN 1024
 #define MAXCLIENTS 3
 
@@ -122,11 +125,32 @@ int main(int argc, char *argv[]){
                         close(c_sockets[i]);
                         c_sockets[i] = -1;
                     }
+
+                    //=== Searching for commands (ADD or REM or SHOW or EXIT) ===
+                    else if (r_len >= 4) {
+                        char* command;
+                        command = substring(buffer, 1, 4);
+
+                        if (*(buffer+4) == '\n' || *(buffer+4) == '+')
+                            printf("Invalid command.\n");
+                        else if (strcmp(command,"ADD ") == 0){
+                            printf("ADD command gotten\n");
+                        }
+                        else if (strcmp(command,"REM ") == 0){
+                            printf("REM command gotten\n");
+                        }
+                        else if (strcmp(command,"SHOW") == 0){
+                            printf("SHOW command gotten\n");
+                        }
+                        else
+                            printf("Invalid command.\n");
+                    }
+
                     else {
                         int j;
                         for (j = 0; j < MAXCLIENTS; j++){
                             if (c_sockets[j] != -1){
-                                int w_len = send(c_sockets[j], buffer, r_len,0);
+                                int w_len = send(c_sockets[j], buffer, r_len,0); // <---- sending
                                 if (w_len <= 0){ //Receiver is disconnected
                                     printf("---> Assuming the client has disconnected.\n");
                                     close(c_sockets[j]);
@@ -142,4 +166,3 @@ int main(int argc, char *argv[]){
 
     return 0;
 }
-

@@ -8,28 +8,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include "input_ops.c"
 
 #define BUFFLEN 1024
-
-char *substring(char *string, int position, int length) 
-{
-    char *pointer = malloc(length+1);
-    if (pointer == NULL)
-    {
-        printf("Unable to allocate memory.\n");
-        exit(1);
-    }
-
-    int c;
-    for (c = 0 ; c < length ; c++)
-    {
-        *(pointer+c) = *(string+position-1);      
-        string++;   
-    }
-    *(pointer+c) = '\0';
-
-    return pointer;
-}
 
 int main(int argc, char *argv[]){
     unsigned int port;

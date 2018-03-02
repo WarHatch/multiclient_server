@@ -65,7 +65,7 @@ reminder_t * addReminder (reminder_t *head, char name[50], time_t time, char* de
     return last->next;
 }
 
-
+/*
 int main(int argc, char *argv[]){
     reminder_t* first = create("John", time(0), "Oh look at these details");
     reminder_t *last = addReminder(first, "Grandma's party", time(0), "SHOTS SHOTS SHOTS!");
@@ -78,3 +78,4 @@ int main(int argc, char *argv[]){
     printf("Program has successfully finished working.\n");
     return 0;
 }
+*/
