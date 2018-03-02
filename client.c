@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <time.h>
 #include "input_ops.c"
 
 #define BUFFLEN 1024
@@ -120,7 +119,7 @@ int main(int argc, char *argv[]){
             }
             else {
                 help:
-                printf("To add a reminder: ADD <Name of reminder> +<YY/MM/DD HH/MM> [+][Details]\n");
+                printf("To add a reminder: ADD <Name of reminder> +<HH/MM/SS> [+][Details]\n");
                 //printf("To remove a reminder: REM <Name of reminder>\n");
                 //printf("To show reminders: SHOW [Name of reminder]\n");
                 //printf("To exit: EXIT");

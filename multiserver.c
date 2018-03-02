@@ -7,8 +7,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "rem_ops.c"
 #include "input_ops.c"
+#include "reminder_list.c"
 
 #define BUFFLEN 1024
 #define MAXCLIENTS 3
@@ -135,6 +135,22 @@ int main(int argc, char *argv[]){
                             printf("Invalid command.\n");
                         else if (strcmp(command,"ADD ") == 0){
                             printf("ADD command gotten\n");
+                            char* remainingArgs = buffer +4;
+                            
+                            char name[50];
+                            remainingArgs = getParameter(buffer+4, name);
+                            printf("Name arg: %s\n", name);
+
+                            //testing time get UNDONE
+                            //time_t alarm_time;
+                            printf("leftover args line: %s\n", remainingArgs); //xxxx debugging
+                            printf("stuck on symbol: %c\n", remainingArgs[0]); //xxxx debugging
+                            // note: POSSIBLE MEMORY CORRUPTION somewhere in the buffers
+                            if (*remainingArgs == '+'){
+                                char alarm_time[20];
+                                remainingArgs = getParameter(remainingArgs+1, alarm_time);
+                                printf("Time arg: %s\n", alarm_time);
+                            }
                         }
                         else if (strcmp(command,"REM ") == 0){
                             printf("REM command gotten\n");
