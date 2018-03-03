@@ -12,6 +12,7 @@
 
 #define BUFFLEN 1024
 #define MAXCLIENTS 3
+#define DATEFORMAT "%y/%m/%d %H/%M/%S"
 
 int findemptyuser(int c_sockets[]){
     int i;
@@ -37,6 +38,8 @@ int main(int argc, char *argv[]){
     int i;
 
     char buffer[BUFFLEN];
+
+    struct node* rem_list = NULL;
 
     if (argc != 2){
         fprintf(stderr, "USAGE: %s <port>\n", argv[0]);
@@ -138,18 +141,43 @@ int main(int argc, char *argv[]){
                             char* remainingArgs = buffer +4;
                             
                             char name[50];
-                            remainingArgs = getParameter(buffer+4, name);
-                            printf("Name arg: %s\n", name);
+                            remainingArgs = getParameter(remainingArgs, name);
+                            printf("Name arg: %sEND\n", name);
 
-                            //testing time get UNDONE
-                            //time_t alarm_time;
-                            printf("leftover args line: %s\n", remainingArgs); //xxxx debugging
-                            printf("stuck on symbol: %c\n", remainingArgs[0]); //xxxx debugging
-                            // note: POSSIBLE MEMORY CORRUPTION somewhere in the buffers
+                            //printf("leftover args line: %sEND\n", remainingArgs);
+                            //printf("stopped on symbol: %c\n", remainingArgs[0]);
                             if (*remainingArgs == '+'){
-                                char alarm_time[20];
-                                remainingArgs = getParameter(remainingArgs+1, alarm_time);
-                                printf("Time arg: %s\n", alarm_time);
+                                char time_s[20];
+                                struct tm tm;
+                                remainingArgs = getParameter(remainingArgs+1, time_s);
+                                printf("Time arg: %sEND\n", time_s);
+
+                                if (strptime(time_s, DATEFORMAT, &tm) == NULL){
+                                    fprintf(stderr, "NOTICE: Invalid parameter format\n");
+                                }
+                                else{
+                                time_t a_time = mktime(&tm);
+                                //
+                                time_t now = time(0);
+                                                                
+                                struct tm * timeinfo;
+                                timeinfo = localtime ( &now );
+                                printf ( "Current local time and date: %s", asctime (timeinfo) );
+                                bzero(timeinfo, sizeof(timeinfo));
+                                timeinfo = localtime ( &a_time );
+                                printf ( "Submited time and date: %s", asctime (timeinfo) );
+                                //
+                                double diffSecs = difftime(a_time, now); //From here it determines whether to save the reminder 
+                                printf ( "Timediff: %f\n", diffSecs );
+
+                                if (rem_list == NULL)
+                                    rem_list = create(name, a_time, "");
+                                else
+                                    addReminder(rem_list, name, a_time, "");
+
+                                //TODO send a notification for successful adding
+                                lastElementIndex(rem_list);
+                                }
                             }
                         }
                         else if (strcmp(command,"REM ") == 0){
@@ -159,7 +187,7 @@ int main(int argc, char *argv[]){
                             printf("SHOW command gotten\n");
                         }
                         else
-                            printf("Invalid command.\n");
+                            printf("NOTICE: Invalid command.\n");
                     }
 
                     else {

@@ -24,14 +24,6 @@ char *substring(char *string, int position, int length)
     return pointer;
 }
 
-time_t toTime (char *time_details)
-{
-    struct tm tm;
-    strptime(time_details, "%H:%M:%S", &tm);
-    time_t t = mktime(&tm);
-    return t;
-}
-
 char* getParameter(char* input, char* parameter)
 {
     int c = 0;
@@ -40,6 +32,7 @@ char* getParameter(char* input, char* parameter)
         *(parameter+c) = *(input+c);
         c++;
     }
+    *(parameter+c) = '\0';
 
     return (input+c); //returns pointer to last untouched symbol
 }

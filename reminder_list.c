@@ -53,10 +53,8 @@ reminder_t *create (char name[50], time_t time, char* details){
 }
 
 reminder_t * addReminder (reminder_t *head, char name[50], time_t time, char* details)
-//returns last elements pointer
+//Adds a reminder to 'head' list and returns this element's in list pointer
 {
-    printf("Called 'addReminder' func. for %s\n", name);
-    
     reminder_t * last = getLastElement(head);
     //last element in the list is assigned
 
