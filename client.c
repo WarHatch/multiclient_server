@@ -51,7 +51,7 @@ int main(int argc, char *argv[]){
     
     /*
      * Isverciamas simboliu eilutuje uzrasytas ip i skaitine forma ir
-     * nustatomas serverio adreso strukt�roje.
+     * nustatomas serverio adreso strukturoje.
      */
     if ( inet_aton(argv[1], &servaddr.sin_addr) <= 0 ) {
         fprintf(stderr,"ERROR #3: Invalid remote IP address.\n");
@@ -77,7 +77,11 @@ int main(int argc, char *argv[]){
 
         select(s_socket+1,&read_set,NULL,NULL,NULL);
 
-        if (FD_ISSET(s_socket, &read_set)){ //if got a signal from server
+        /*
+         * In case of getting a signal from server
+         * Reads the message and prints it or closes the fresh-dead socket
+         */
+        if (FD_ISSET(s_socket, &read_set)){
             memset(&recvbuffer,0,BUFFLEN);
             i = read(s_socket, &recvbuffer, BUFFLEN);
 
@@ -89,27 +93,26 @@ int main(int argc, char *argv[]){
             
             printf("Response from server: %s",recvbuffer);
         }
+        /*
+         * If no signal got - reads data from console
+         * And sends it to server if it passes some checks
+         */
         else if (FD_ISSET(0,&read_set)) {   //else std_in ops
             i = read(0,&sendbuffer, BUFFLEN);
 
             if (i<=0)
-                printf("Something bad hapenned :(\n");
-            else if (i >= 4) {
-                //Checks if it's ADD or REM or SHOW or EXIT
+                printf("Something bad hapenned :(\nCause: read message from std_in length = %d\n", i);
+            else if ( i >= 4 && (*(sendbuffer+4) != '\n' || *(sendbuffer+4) != '+') ){
+                //Reads and handles the command
                 char* first_a;
                 first_a = substring(sendbuffer, 1, 4);
                 //printf("First arg: %s\n", first_a);
-                write(s_socket, sendbuffer,i); // <-------- TODO: move this
 
-                if (strcmp(first_a,"ADD ") == 0){
-                    if (*(sendbuffer+4) == '\n' || *(sendbuffer+4) == '+')
-                    goto help;
+                if (strcmp(first_a,"ADD ") == 0 || strcmp(first_a,"SHOW") == 0){
+                    write(s_socket, sendbuffer,i);
                 }
                 else if (strcmp(first_a,"REM ") == 0){
                     printf("***REM OPERATION NOT IMPLEMENTED***\n");
-                }
-                else if (strcmp(first_a,"SHOW") == 0){
-                    printf("***SHOW OPERATION NOT IMPLEMENTED***\n");
                 }
                 else if (strcmp(first_a,"EXIT") == 0){
                     close(s_socket);
@@ -120,9 +123,9 @@ int main(int argc, char *argv[]){
             else {
                 help:
                 printf("To add a reminder: ADD <Name of reminder> +<YY/MM/DD hh/mm/ss> [+][Details]\n");
-                //printf("To remove a reminder: REM <Name of reminder>\n");
-                //printf("To show reminders: SHOW [Name of reminder]\n");
-                //printf("To exit: EXIT");
+                printf("To remove a reminder: REM <Name of reminder>\n");
+                printf("To show reminders: SHOW [Name of reminder]\n");
+                printf("To exit: EXIT\n");
             }
         }
     }

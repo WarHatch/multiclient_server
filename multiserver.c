@@ -58,6 +58,9 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
+    /*
+     * Isvaloma ir uzpildoma serverio struktura
+     */
     memset(&servaddr,0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY); 
@@ -68,6 +71,9 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
+    /*
+     * master_socket klauso ir turi reaguoti i naujus prisijungimus
+     */
     if (listen(master_socket, 5) <0){
         fprintf(stderr,"ERROR #4: error in listen().\n");
         return -1;
@@ -130,16 +136,15 @@ int main(int argc, char *argv[]){
                         c_sockets[i] = -1;
                     }
 
-                    //=== Searching for commands (ADD or REM or SHOW or EXIT) ===
+                    //=== Looking for commands (ADD or REM or SHOW or EXIT) ===
                     else if (r_len >= 4) {
                         //bzero(response, BUFFLEN);
+                        response = calloc(BUFFLEN, sizeof(char));
 
                         char* command;
                         command = substring(buffer, 1, 4);
 
-                        if (*(buffer+4) == '\n' || *(buffer+4) == '+')
-                            printf("Invalid command.\n");
-                        else if (strcmp(command,"ADD ") == 0){
+                        if (strcmp(command,"ADD ") == 0){
                             printf("ADD command gotten\n");
                             char* remainingArgs = buffer +4;
                             
@@ -163,7 +168,6 @@ int main(int argc, char *argv[]){
                                 }
                                 else{
                                     time_t a_time = mktime(&para_tm);
-                                    printf("The passed hour is: %d\n", para_tm.tm_hour); // xxxx DEBUG
                                     time_t now = time(0);
                                     struct tm * timeinfo;
                                     timeinfo = localtime ( &now ); 
@@ -171,7 +175,7 @@ int main(int argc, char *argv[]){
                                     timeinfo = localtime ( &a_time );
                                     printf ( "Submited time and date: %s", asctime (timeinfo) );
 
-                                    double diffSecs = difftime(a_time, now); //From here it determines whether to save the reminder 
+                                    double diffSecs = difftime(a_time, now); //Checks if reminder is late or not 
                                     printf ( "Timediff: %f\n", diffSecs );
 
                                     if (rem_list == NULL)
@@ -186,9 +190,11 @@ int main(int argc, char *argv[]){
                         }
                         else if (strcmp(command,"REM ") == 0){
                             printf("REM command gotten\n");
+                            response = "NOTICE: Removing is not yet implemented.\n";
                         }
                         else if (strcmp(command,"SHOW") == 0){
                             printf("SHOW command gotten\n");
+                            listToString(rem_list, response, BUFFLEN); //Unhandled error
                         }
                         else{
                             printf("NOTICE: Invalid command.\n");
@@ -196,7 +202,7 @@ int main(int argc, char *argv[]){
                         }
                     }
 
-                    //response = "An echo!\n";
+                    //Sends a response to client
                     int w_len = send(c_sockets[i], response, BUFFLEN,0); // <---- sending
 
                     
@@ -218,7 +224,7 @@ int main(int argc, char *argv[]){
                 }
             }
         }
-    } //end of loop
+    } //end of 'for(;;)' loop
 
     return 0;
 }

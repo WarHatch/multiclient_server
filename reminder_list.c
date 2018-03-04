@@ -1,3 +1,4 @@
+#define __USE_XOPEN
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,6 +64,42 @@ reminder_t * addReminder (reminder_t *head, char name[50], time_t time, char* de
     return last->next;
 }
 
+int listToString(reminder_t *head, char* dest, const int bufflen)
+{
+    reminder_t *current = head;
+    char string[bufflen];
+    //TODO handle memory overflow
+
+    if (current == NULL)
+        return 0;
+    else{
+        strcpy(string, "Name: ");
+        strcat(string, current->name);
+        strcat(string, "\nTime: ");
+        char* time_str = asctime(localtime(&(current->time)));
+        strcat(string, time_str);
+        strcat(string, "\n");
+        strcat(string, "\n");
+    }
+
+    while (current->next != NULL){
+        current = current->next;
+
+        strcat(string, "Name: ");
+        strcat(string, current->name);
+        strcat(string, "\nTime: ");
+        char* time_str = asctime(localtime(&(current->time)));
+        strcat(string, time_str);
+        strcat(string, "\n");
+        strcat(string, "\n");
+    } 
+
+    strcpy(dest, string);
+    printf("%s", dest);
+
+    return 1;
+}
+
 /*
 int main(int argc, char *argv[]){
     reminder_t* first = create("John", time(0), "Oh look at these details");
@@ -72,6 +109,9 @@ int main(int argc, char *argv[]){
     last = addReminder(first, "Five", time(0), "");
     printf("last element: *value->next = %d, name = %s, det. = %s\n", last->next, last->name, last->details);
     lastElementIndex(first);
+
+    char* str_toPrint = calloc(1024, sizeof(char));
+    listToString(first, str_toPrint, 1024);
 
     printf("Program has successfully finished working.\n");
     return 0;
