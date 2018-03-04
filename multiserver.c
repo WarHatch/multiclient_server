@@ -11,7 +11,7 @@
 #include "reminder_list.c"
 
 #define BUFFLEN 1024
-#define MAXCLIENTS 3
+#define MAXCLIENTS 5
 #define DATEFORMAT "%y/%m/%d %H/%M/%S"
 
 int findemptyuser(int c_sockets[]){
@@ -38,6 +38,7 @@ int main(int argc, char *argv[]){
     int i;
 
     char buffer[BUFFLEN];
+    char* response;
 
     struct node* rem_list = NULL;
 
@@ -115,13 +116,13 @@ int main(int argc, char *argv[]){
         }
         for (i = 0; i < MAXCLIENTS; i++){
             if (c_sockets[i] != -1){
-                if (FD_ISSET(c_sockets[i], &read_set)){
+                if (FD_ISSET(c_sockets[i], &read_set)){ //===== If got a message from socket
                     memset(&buffer,0,BUFFLEN);
                     int r_len = recv(c_sockets[i],&buffer,BUFFLEN,0);
 
                     memset(&clientaddr, 0, clientaddrlen);
                     getpeername(c_sockets[i], (struct sockaddr*)&clientaddr, &clientaddrlen);
-                    printf("Received. %s : %s", inet_ntoa(clientaddr.sin_addr), buffer);
+                    printf("\nReceived. %s : '%s'", inet_ntoa(clientaddr.sin_addr), buffer);
 
                     if (r_len <= 0){ //Sender disconnected
                         printf("---> Assuming the client has disconnected.\n");
@@ -131,6 +132,8 @@ int main(int argc, char *argv[]){
 
                     //=== Searching for commands (ADD or REM or SHOW or EXIT) ===
                     else if (r_len >= 4) {
+                        //bzero(response, BUFFLEN);
+
                         char* command;
                         command = substring(buffer, 1, 4);
 
@@ -142,41 +145,42 @@ int main(int argc, char *argv[]){
                             
                             char name[50];
                             remainingArgs = getParameter(remainingArgs, name);
-                            printf("Name arg: %sEND\n", name);
+                            printf("Name arg: '%s'\n", name);
 
                             //printf("leftover args line: %sEND\n", remainingArgs);
                             //printf("stopped on symbol: %c\n", remainingArgs[0]);
                             if (*remainingArgs == '+'){
                                 char time_s[20];
-                                struct tm tm;
-                                remainingArgs = getParameter(remainingArgs+1, time_s);
-                                printf("Time arg: %sEND\n", time_s);
+                                struct tm para_tm;
+                                bzero(&para_tm, sizeof(struct tm)); //IMPORTANT this prevents incorrect hour value
 
-                                if (strptime(time_s, DATEFORMAT, &tm) == NULL){
+                                remainingArgs = getParameter(remainingArgs+1, time_s);
+                                printf("Time arg: '%s'\n", time_s);
+
+                                if (strptime(time_s, DATEFORMAT, &para_tm) == NULL){
                                     fprintf(stderr, "NOTICE: Invalid parameter format\n");
+                                    response = "NOTICE: Invalid parameter format\n";
                                 }
                                 else{
-                                time_t a_time = mktime(&tm);
-                                //
-                                time_t now = time(0);
-                                                                
-                                struct tm * timeinfo;
-                                timeinfo = localtime ( &now );
-                                printf ( "Current local time and date: %s", asctime (timeinfo) );
-                                bzero(timeinfo, sizeof(timeinfo));
-                                timeinfo = localtime ( &a_time );
-                                printf ( "Submited time and date: %s", asctime (timeinfo) );
-                                //
-                                double diffSecs = difftime(a_time, now); //From here it determines whether to save the reminder 
-                                printf ( "Timediff: %f\n", diffSecs );
+                                    time_t a_time = mktime(&para_tm);
+                                    printf("The passed hour is: %d\n", para_tm.tm_hour); // xxxx DEBUG
+                                    time_t now = time(0);
+                                    struct tm * timeinfo;
+                                    timeinfo = localtime ( &now ); 
+                                    printf ( "Current local time and date: %s", asctime (timeinfo) );
+                                    timeinfo = localtime ( &a_time );
+                                    printf ( "Submited time and date: %s", asctime (timeinfo) );
 
-                                if (rem_list == NULL)
-                                    rem_list = create(name, a_time, "");
-                                else
-                                    addReminder(rem_list, name, a_time, "");
+                                    double diffSecs = difftime(a_time, now); //From here it determines whether to save the reminder 
+                                    printf ( "Timediff: %f\n", diffSecs );
 
-                                //TODO send a notification for successful adding
-                                lastElementIndex(rem_list);
+                                    if (rem_list == NULL)
+                                        rem_list = create(name, a_time, "");
+                                    else
+                                        addReminder(rem_list, name, a_time, "");
+
+                                    lastElementIndex(rem_list);
+                                    response = "You have successfully added a reminder\n";
                                 }
                             }
                         }
@@ -186,10 +190,17 @@ int main(int argc, char *argv[]){
                         else if (strcmp(command,"SHOW") == 0){
                             printf("SHOW command gotten\n");
                         }
-                        else
+                        else{
                             printf("NOTICE: Invalid command.\n");
+                            response = "NOTICE: Invalid command.\n";
+                        }
                     }
 
+                    //response = "An echo!\n";
+                    int w_len = send(c_sockets[i], response, BUFFLEN,0); // <---- sending
+
+                    
+                    /*
                     else {
                         int j;
                         for (j = 0; j < MAXCLIENTS; j++){
@@ -203,6 +214,7 @@ int main(int argc, char *argv[]){
                             }
                         }
                     }
+                    */
                 }
             }
         }
